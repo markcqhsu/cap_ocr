@@ -197,14 +197,20 @@
       border: 1px solid #dde;
       padding: 3px 4px;
     }
-    td input {
+    td input, td textarea {
       border: none; outline: none; background: transparent;
       width: 100%; min-width: 44px;
       font-size: .82rem; text-align: center;
+      font-family: inherit;
+    }
+    td textarea {
+      resize: none; overflow: hidden;
+      line-height: 1.4; padding: 0;
+      min-height: 1.4em;
     }
     tr:nth-child(even) td { background: #f8f9fc; }
     tr:hover td { background: #eef2ff; }
-    td input:focus { background: #fffde7; }
+    td input:focus, td textarea:focus { background: #fffde7; }
 
     /* ── Footer fields ── */
     .footer-fields {
@@ -228,7 +234,7 @@
     <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
   </svg>
   <h1>塑蓋廠 OCR 辨識系統</h1>
-  <span class="version-badge">v1.0.3</span>
+  <span class="version-badge">v1.0.4</span>
 </header>
 
 <div class="container">
@@ -459,14 +465,30 @@
     document.getElementById("result-card").scrollIntoView({ behavior: "smooth" });
   }
 
+  const WRAP_COLS = new Set(["品名蓋型", "不良原因"]);
+
+  function autoResize(el) {
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
+  }
+
   function appendRow(row = {}) {
     const tr = document.createElement("tr");
     ROW_KEYS.forEach(key => {
       const td = document.createElement("td");
-      const inp = document.createElement("input");
-      inp.type = "text";
-      inp.value = row[key] || "";
-      td.appendChild(inp);
+      let el;
+      if (WRAP_COLS.has(key)) {
+        el = document.createElement("textarea");
+        el.rows = 1;
+        el.value = row[key] || "";
+        el.addEventListener("input", () => autoResize(el));
+        setTimeout(() => autoResize(el), 0);
+      } else {
+        el = document.createElement("input");
+        el.type = "text";
+        el.value = row[key] || "";
+      }
+      td.appendChild(el);
       tr.appendChild(td);
     });
     document.getElementById("result-body").appendChild(tr);
@@ -478,7 +500,7 @@
   async function exportExcel() {
     const rows = [];
     document.querySelectorAll("#result-body tr").forEach(tr => {
-      const vals = [...tr.querySelectorAll("input")].map(i => i.value);
+      const vals = [...tr.querySelectorAll("input, textarea")].map(i => i.value);
       const row = {};
       ROW_KEYS.forEach((k, i) => { row[k] = vals[i] || ""; });
       rows.push(row);
