@@ -197,6 +197,11 @@ def _map_to_cols(group, sorted_cols):
             text = _fix_machine_number(text)
         if col_key == "不良率" and text and "%" not in text and re.search(r"\d", text):
             text += "%"
+        # 孤立的 "%" 是被 Vision 拆開的不良率符號，補回不良率欄
+        if text == "%" and col_key != "不良率":
+            if "%" not in row["不良率"]:
+                row["不良率"] = (row["不良率"] + "%").strip()
+            continue
         row[col_key] = (row[col_key] + text).strip()
     return row
 
