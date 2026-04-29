@@ -62,12 +62,17 @@ def ocr():
     if not file.filename or not _allowed(file.filename):
         return jsonify({"error": "不支援的圖片格式"}), 400
 
-    ext = file.filename.rsplit(".", 1)[1].lower()
-    tmp_path = os.path.join(UPLOAD_DIR, f"{uuid.uuid4()}.{ext}")
+    form_type = request.form.get("form_type", "cap")
+    ext       = file.filename.rsplit(".", 1)[1].lower()
+    tmp_path  = os.path.join(UPLOAD_DIR, f"{uuid.uuid4()}.{ext}")
     file.save(tmp_path)
 
     try:
-        result = parse_form(tmp_path)
+        if form_type == "husky":
+            from ocr_parser_husky import parse_form as parse_husky
+            result = parse_husky(tmp_path)
+        else:
+            result = parse_form(tmp_path)
     finally:
         os.remove(tmp_path)
 
@@ -91,6 +96,17 @@ def export():
     data = request.get_json()
     if not data:
         return jsonify({"error": "請提供 JSON 資料"}), 400
+
+    form_type = data.get("form_type", "cap")
+    if form_type == "husky":
+        from form_template_husky import fill_template as fill_husky
+        path = fill_husky(data)
+        return send_file(
+            path,
+            as_attachment=True,
+            download_name="Husky_製程管制標準.xlsx",
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
 
     path = fill_template(data)
     process = data.get("製程", "不良率紀錄")
