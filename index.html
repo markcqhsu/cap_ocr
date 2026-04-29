@@ -155,6 +155,7 @@
     .btn-primary { background: #1a3c6e; color: #fff; }
     .btn-success { background: #1e7e3e; color: #fff; }
     .btn-outline { background: #fff; color: #1a3c6e; border: 1.5px solid #1a3c6e; }
+    .btn-danger  { background: #fff; color: #b00; border: 1.5px solid #b00; }
     .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
 
     /* ── Meta strip ── */
@@ -268,6 +269,7 @@
 
     <div class="btn-row">
       <button class="btn btn-primary" id="btn-ocr" onclick="runOCR()" disabled>開始辨識</button>
+      <button class="btn btn-danger" id="btn-clear" onclick="clearAll()" disabled>清空</button>
     </div>
   </div>
 
@@ -344,8 +346,23 @@
     };
     reader.readAsDataURL(file);
     document.getElementById("btn-ocr").disabled = false;
+    document.getElementById("btn-clear").disabled = false;
     setStatus("", "");
     hideProgress();
+  }
+
+  function clearAll() {
+    selectedFile = null;
+    const fileInput = document.getElementById("file-input");
+    fileInput.value = "";
+    const img = document.getElementById("preview-img");
+    img.src = "";
+    img.style.display = "none";
+    document.getElementById("btn-ocr").disabled = true;
+    document.getElementById("btn-clear").disabled = true;
+    document.getElementById("result-card").style.display = "none";
+    hideProgress();
+    setStatus("", "");
   }
 
   // ── Progress ──────────────────────────────────────────────────────────────
