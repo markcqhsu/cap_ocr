@@ -81,6 +81,16 @@ def ocr():
 
 @app.route("/template", methods=["GET"])
 def template():
+    form_type = request.args.get("type", "cap")
+    if form_type == "husky":
+        from form_template_husky import create_blank_template as blank_husky
+        machine = request.args.get("machine", "Husky")
+        path = blank_husky(machine)
+        return send_file(
+            path, as_attachment=True,
+            download_name=f"Husky_製程管制標準_{machine}_空白.xlsx",
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
     process = request.args.get("process", "切割")
     path = create_blank_template(process)
     return send_file(
