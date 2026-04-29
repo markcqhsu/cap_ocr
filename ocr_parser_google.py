@@ -208,12 +208,15 @@ def _map_to_cols(group, sorted_cols):
 
 def _fix_machine_number(text):
     text = re.sub(r"\s", "", text).upper()
-    n = text.replace("O", "0").replace("I", "1").replace("L", "1").replace("G", "6")
-    m = re.match(r"B[C0](\d+)", n)
+    # 格式：B + 1個字母 + 數字，例如 BK19、BF08、BC09
+    m = re.match(r"B([A-Z0-9])(\d+)", text)
     if m:
-        return f"BC{m.group(1).zfill(2)}"
-    digits = re.findall(r"\d+", n)
-    return f"BC{''.join(digits).zfill(2)}" if digits else text
+        letter = m.group(1)
+        if letter == "0":   # OCR 把 C 誤認為 0
+            letter = "C"
+        num = m.group(2).replace("O", "0").replace("I", "1").replace("L", "1").replace("G", "6")
+        return f"B{letter}{num.zfill(2)}"
+    return text
 
 
 # ── footer ─────────────────────────────────────────────────────────────────────
