@@ -28,18 +28,18 @@ RIGHT_COLS = list("HIJKLMN")
 RIGHT_GROUPS = {"機器加熱設定", "模具加熱設定", "控制", "乾燥機"}
 
 
-def create_blank_template(machine_type="EM04") -> str:
+def create_blank_template(machine_type="") -> str:
     params = [{"group": g, "name": n, "value": "", "range": r, "unit": u}
               for g, n, r, u in LEFT_TEMPLATE + RIGHT_TEMPLATE]
     return _build_excel({
-        "機型": machine_type, "日期": "", "克重": "", "瓶口": "",
+        "機型": "", "日期": "", "克重": "", "瓶口": "",
         "模號": "", "穴數": "", "原料": "",
         "params": params,
-    })
+    }, blank=True)
 
 
 def fill_template(data: dict) -> str:
-    return _build_excel(data)
+    return _build_excel(data, blank=False)
 
 
 def _checkbox_title(machine_type: str) -> str:
@@ -48,7 +48,11 @@ def _checkbox_title(machine_type: str) -> str:
             f"{marks['EM04']} EM04  {marks['EM06']} EM06  {marks['EM07']} EM07")
 
 
-def _build_excel(data: dict) -> str:
+def _blank_title() -> str:
+    return "Husky 製程管制標準     □ EM04  □ EM06  □ EM07"
+
+
+def _build_excel(data: dict, blank: bool = False) -> str:
     wb = Workbook()
     ws = wb.active
     ws.title = "製程管制標準"
@@ -61,7 +65,7 @@ def _build_excel(data: dict) -> str:
 
     # Row 1: Title with EM04/EM06/EM07 checkboxes
     ws.merge_cells("A1:N1")
-    ws["A1"] = _checkbox_title(data.get("機型", "EM04"))
+    ws["A1"] = _blank_title() if blank else _checkbox_title(data.get("機型", ""))
     ws["A1"].font = TITLE_FONT
     ws["A1"].alignment = _center()
     ws.row_dimensions[1].height = 18

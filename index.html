@@ -345,7 +345,7 @@
     <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
   </svg>
   <h1>THC 生產OCR 辨識系統</h1>
-  <span class="version-badge">v1.1.0</span>
+  <span class="version-badge">v1.1.1</span>
 </header>
 
 <div class="container">
@@ -423,7 +423,7 @@
 
     <div class="husky-machine-row">
       機型：
-      <label><input type="radio" name="h-機型" value="EM04" checked> EM04</label>
+      <label><input type="radio" name="h-機型" value="EM04"> EM04</label>
       <label><input type="radio" name="h-機型" value="EM06"> EM06</label>
       <label><input type="radio" name="h-機型" value="EM07"> EM07</label>
     </div>
@@ -677,7 +677,7 @@
 
   function _getHuskyMachine() {
     const checked = document.querySelector('input[name="h-機型"]:checked');
-    return checked ? checked.value : "EM04";
+    return checked ? checked.value : "";
   }
 
   function fillHusky(data) {
