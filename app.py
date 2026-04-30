@@ -74,6 +74,9 @@ def ocr():
         elif form_type == "hpp5":
             from ocr_parser_hpp5 import parse_form as parse_hpp5
             result = parse_hpp5(tmp_path)
+        elif form_type == "netstal":
+            from ocr_parser_netstal import parse_form as parse_netstal
+            result = parse_netstal(tmp_path)
         else:
             result = parse_form(tmp_path)
     finally:
@@ -100,6 +103,14 @@ def template():
         return send_file(
             path, as_attachment=True,
             download_name="Hpp5_製程管制標準_空白.xlsx",
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+    if form_type == "netstal":
+        from form_template_netstal import create_blank_template as blank_netstal
+        path = blank_netstal()
+        return send_file(
+            path, as_attachment=True,
+            download_name="Netstal_製程管制標準_空白.xlsx",
             mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
     process = request.args.get("process", "切割")
@@ -135,6 +146,15 @@ def export():
             path,
             as_attachment=True,
             download_name="Hpp5_製程管制標準.xlsx",
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+    if form_type == "netstal":
+        from form_template_netstal import fill_template as fill_netstal
+        path = fill_netstal(data)
+        return send_file(
+            path,
+            as_attachment=True,
+            download_name="Netstal_製程管制標準.xlsx",
             mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
 

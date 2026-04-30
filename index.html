@@ -168,6 +168,9 @@
       font-weight: 700; font-size: .75rem;
       text-align: center;
     }
+    .husky-section-table .td-pos {
+      text-align: center; color: #667; font-size: .75rem; white-space: nowrap;
+    }
     .husky-section-table .td-name {
       white-space: normal; word-break: break-word;
     }
@@ -352,7 +355,7 @@
     <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
   </svg>
   <h1>THC 生產OCR 辨識系統</h1>
-  <span class="version-badge">v1.2.2</span>
+  <span class="version-badge">v1.3.0</span>
 </header>
 
 <div class="container">
@@ -378,6 +381,12 @@
         <span class="product-tag">瓶胚</span>
         <span class="form-name">Hpp5 製程管制標準</span>
         <span class="form-desc">EM16 注塑參數記錄</span>
+      </button>
+
+      <button class="form-btn" id="btn-form-netstal" onclick="selectForm('netstal')">
+        <span class="product-tag">瓶胚</span>
+        <span class="form-name">Netstal 製程管制標準</span>
+        <span class="form-desc">EM09 / EM13 注塑參數記錄</span>
       </button>
 
     </div>
@@ -518,9 +527,10 @@
 
   // ── Form registry — add new form types here only ──────────────────────────
   const FORM_CONFIG = {
-    cap:   { label: "塑蓋廠不良率紀錄表", isPreform: false },
-    husky: { label: "Husky 製程管制標準", isPreform: true  },
-    hpp5:  { label: "Hpp5 製程管制標準",  isPreform: true  },
+    cap:     { label: "塑蓋廠不良率紀錄表",    isPreform: false, machines: []                   },
+    husky:   { label: "Husky 製程管制標準",    isPreform: true,  machines: ["EM04","EM06","EM07"] },
+    hpp5:    { label: "Hpp5 製程管制標準",     isPreform: true,  machines: []                   },
+    netstal: { label: "Netstal 製程管制標準",  isPreform: true,  machines: ["EM09","EM13"]       },
   };
 
   function selectForm(type) {
@@ -532,8 +542,15 @@
       if (btn) btn.classList.toggle("active", t === type);
     });
     document.getElementById("form-type-label").textContent = cfg.label;
-    // Machine type row only for Husky
-    document.getElementById("husky-machine-row").style.display = type === "husky" ? "" : "none";
+    // Machine type row: show and rebuild if form has machine options
+    const machineRow = document.getElementById("husky-machine-row");
+    const machines = cfg.machines || [];
+    machineRow.style.display = machines.length ? "" : "none";
+    if (machines.length) {
+      machineRow.innerHTML = "機型：" + machines.map(m =>
+        `<label><input type="radio" name="h-機型" value="${m}"> ${m}</label>`
+      ).join("");
+    }
     // Preform result card subtitle
     if (cfg.isPreform) {
       document.getElementById("preform-card-subtitle").textContent = cfg.label;
@@ -681,8 +698,9 @@
 
   // ── Husky fill & export ───────────────────────────────────────────────────
   const RIGHT_GROUPS_BY_FORM = {
-    husky: new Set(["機器加熱設定","模具加熱設定","控制","乾燥機"]),
-    hpp5:  new Set(["機器加熱設定","模具加熱設定"]),
+    husky:   new Set(["機器加熱設定","模具加熱設定","控制","乾燥機"]),
+    hpp5:    new Set(["機器加熱設定","模具加熱設定"]),
+    netstal: new Set(["機器加熱設定","模具加熱設定","乾燥機","料桶"]),
   };
   function getRightGroups() {
     return RIGHT_GROUPS_BY_FORM[currentForm] || new Set();
@@ -720,7 +738,16 @@
   function _buildHuskyTable(tbodyId, params) {
     const tbody = document.getElementById(tbodyId);
     tbody.innerHTML = "";
-    let prevGroup = null, groupStart = null, groupRows = [];
+    const hasPos = params.some(p => p.pos);
+    // Update thead if needed
+    const thead = tbody.closest("table").querySelector("thead tr");
+    if (hasPos && thead.children.length === 5) {
+      const th = document.createElement("th");
+      th.textContent = "位置";
+      thead.insertBefore(th, thead.children[1]);
+    } else if (!hasPos && thead.children.length === 6) {
+      thead.children[1].remove();
+    }
 
     params.forEach((p, i) => {
       const tr = document.createElement("tr");
@@ -729,6 +756,13 @@
       tdGrp.className = "td-group";
       tdGrp.dataset.group = p.group;
       tr.appendChild(tdGrp);
+
+      if (hasPos) {
+        const tdPos = document.createElement("td");
+        tdPos.className = "td-pos";
+        tdPos.textContent = p.pos || "";
+        tr.appendChild(tdPos);
+      }
 
       const tdName = document.createElement("td");
       tdName.className = "td-name";
@@ -818,12 +852,11 @@
   }
 
   function downloadHuskyTemplate() {
-    if (currentForm === "hpp5") {
-      window.open(`${API}/template?type=hpp5`, "_blank");
-    } else {
-      const mt = _getHuskyMachine();
-      window.open(`${API}/template?type=husky&machine=${mt}`, "_blank");
-    }
+    const mt = _getHuskyMachine();
+    const url = mt
+      ? `${API}/template?type=${currentForm}&machine=${mt}`
+      : `${API}/template?type=${currentForm}`;
+    window.open(url, "_blank");
   }
 
   let currentHuskyData = null;
