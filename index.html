@@ -352,7 +352,7 @@
     <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
   </svg>
   <h1>THC 生產OCR 辨識系統</h1>
-  <span class="version-badge">v1.2.1</span>
+  <span class="version-badge">v1.2.2</span>
 </header>
 
 <div class="container">
@@ -417,16 +417,10 @@
 
     <div id="status"></div>
 
-    <!-- 塑蓋操作按鈕 -->
-    <div class="btn-row" id="cap-actions">
+    <!-- 操作按鈕（所有表格共用） -->
+    <div class="btn-row">
       <button class="btn btn-primary" id="btn-ocr" onclick="runOCR()" disabled>開始辨識</button>
-      <button class="btn btn-danger" id="btn-clear" onclick="clearAll()" disabled>清空</button>
-    </div>
-
-    <!-- 瓶胚操作按鈕（與塑蓋共用 file input，但獨立按鈕列） -->
-    <div class="btn-row" id="preform-actions" style="display:none">
-      <button class="btn btn-primary" id="btn-ocr-husky" onclick="runOCR()" disabled>開始辨識</button>
-      <button class="btn btn-danger" id="btn-clear-husky" onclick="clearAll()" disabled>清空</button>
+      <button class="btn btn-danger"  id="btn-clear" onclick="clearAll()" disabled>清空</button>
     </div>
   </div>
 
@@ -434,7 +428,7 @@
   <div class="card" id="husky-result-card" style="display:none">
     <h2><span class="step-badge">3</span>確認辨識結果 &nbsp;<span id="preform-card-subtitle" style="font-weight:400;color:#556;font-size:.85rem;">Husky 製程管制標準</span></h2>
 
-    <div class="husky-machine-row">
+    <div class="husky-machine-row" id="husky-machine-row">
       機型：
       <label><input type="radio" name="h-機型" value="EM04"> EM04</label>
       <label><input type="radio" name="h-機型" value="EM06"> EM06</label>
@@ -522,30 +516,27 @@
 
   let currentForm = "cap";
 
-  const FORM_LABELS = {
-    cap:   "塑蓋廠不良率紀錄表",
-    husky: "Husky 製程管制標準",
-    hpp5:  "Hpp5 製程管制標準",
+  // ── Form registry — add new form types here only ──────────────────────────
+  const FORM_CONFIG = {
+    cap:   { label: "塑蓋廠不良率紀錄表", isPreform: false },
+    husky: { label: "Husky 製程管制標準", isPreform: true  },
+    hpp5:  { label: "Hpp5 製程管制標準",  isPreform: true  },
   };
-
-  const PREFORM_TYPES = new Set(["husky", "hpp5"]);
 
   function selectForm(type) {
     currentForm = type;
-    document.getElementById("btn-form-cap").classList.toggle("active", type === "cap");
-    document.getElementById("btn-form-husky").classList.toggle("active", type === "husky");
-    document.getElementById("btn-form-hpp5").classList.toggle("active", type === "hpp5");
-    document.getElementById("form-type-label").textContent = FORM_LABELS[type];
-    const isPreform = PREFORM_TYPES.has(type);
-    document.getElementById("cap-actions").style.display     = isPreform ? "none" : "flex";
-    document.getElementById("preform-actions").style.display = isPreform ? "flex" : "none";
-    document.getElementById("result-card").style.display       = "none";
-    document.getElementById("husky-result-card").style.display = "none";
-    // machine type row only shown for Husky
+    const cfg = FORM_CONFIG[type];
+    // Update selector buttons
+    Object.keys(FORM_CONFIG).forEach(t => {
+      const btn = document.getElementById(`btn-form-${t}`);
+      if (btn) btn.classList.toggle("active", t === type);
+    });
+    document.getElementById("form-type-label").textContent = cfg.label;
+    // Machine type row only for Husky
     document.getElementById("husky-machine-row").style.display = type === "husky" ? "" : "none";
-    // update result card subtitle
-    if (isPreform) {
-      document.getElementById("preform-card-subtitle").textContent = FORM_LABELS[type];
+    // Preform result card subtitle
+    if (cfg.isPreform) {
+      document.getElementById("preform-card-subtitle").textContent = cfg.label;
     }
     clearAll(true);
   }
@@ -572,11 +563,8 @@
       img.style.display = "block";
     };
     reader.readAsDataURL(file);
-    const isCap = currentForm === "cap";
-    document.getElementById("btn-ocr").disabled        = !isCap;
-    document.getElementById("btn-clear").disabled      = !isCap;
-    document.getElementById("btn-ocr-husky").disabled  = isCap;
-    document.getElementById("btn-clear-husky").disabled = isCap;
+    document.getElementById("btn-ocr").disabled   = false;
+    document.getElementById("btn-clear").disabled = false;
     setStatus("", "");
     hideProgress();
   }
@@ -586,10 +574,8 @@
     document.getElementById("file-input").value = "";
     const img = document.getElementById("preview-img");
     img.src = ""; img.style.display = "none";
-    document.getElementById("btn-ocr").disabled         = true;
-    document.getElementById("btn-clear").disabled       = true;
-    document.getElementById("btn-ocr-husky").disabled   = true;
-    document.getElementById("btn-clear-husky").disabled = true;
+    document.getElementById("btn-ocr").disabled   = true;
+    document.getElementById("btn-clear").disabled = true;
     if (!silent) {
       document.getElementById("result-card").style.display       = "none";
       document.getElementById("husky-result-card").style.display = "none";
@@ -633,8 +619,7 @@
   async function runOCR() {
     if (!selectedFile) return;
 
-    document.getElementById("btn-ocr").disabled       = true;
-    document.getElementById("btn-ocr-husky").disabled = true;
+    document.getElementById("btn-ocr").disabled = true;
     document.getElementById("result-card").style.display       = "none";
     document.getElementById("husky-result-card").style.display = "none";
     setStatus("", "");
@@ -664,8 +649,8 @@
       setProgressStep(4);
       setTimeout(() => {
         hideProgress();
-        if (PREFORM_TYPES.has(currentForm)) fillHusky(data);
-        else                               fillResults(data);
+        if (FORM_CONFIG[currentForm].isPreform) fillHusky(data);
+        else                                    fillResults(data);
         setStatus("辨識完成，請確認資料後匯出。", "ok");
       }, 600);
     } catch (err) {
@@ -673,8 +658,7 @@
       hideProgress();
       setStatus("辨識失敗：" + err.message, "error");
     } finally {
-      document.getElementById("btn-ocr").disabled       = false;
-      document.getElementById("btn-ocr-husky").disabled = false;
+      document.getElementById("btn-ocr").disabled = false;
     }
   }
 
@@ -701,7 +685,7 @@
     hpp5:  new Set(["機器加熱設定","模具加熱設定"]),
   };
   function getRightGroups() {
-    return RIGHT_GROUPS_BY_FORM[currentForm] || RIGHT_GROUPS_BY_FORM.husky;
+    return RIGHT_GROUPS_BY_FORM[currentForm] || new Set();
   }
 
   function _getHuskyMachine() {
