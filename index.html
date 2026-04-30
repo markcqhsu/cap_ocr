@@ -145,28 +145,35 @@
       border-collapse: collapse;
       width: 100%;
       font-size: .8rem;
+      table-layout: fixed;
     }
+    .husky-section-table thead th:nth-child(1) { width: 12%; } /* 項目 */
+    .husky-section-table thead th:nth-child(2) { width: 30%; } /* 名稱 */
+    .husky-section-table thead th:nth-child(3) { width: 22%; } /* 設定值 */
+    .husky-section-table thead th:nth-child(4) { width: 22%; } /* 範圍 */
+    .husky-section-table thead th:nth-child(5) { width: 14%; } /* 單位 */
     .husky-section-table th {
       background: #1a3c6e; color: #fff;
       padding: 6px 5px; text-align: center;
-      white-space: nowrap; font-weight: 600;
+      font-weight: 600; overflow: hidden;
     }
     .husky-section-table td {
       border: 1px solid #dde;
       padding: 2px 4px;
       vertical-align: middle;
+      overflow: hidden;
     }
     .husky-section-table .td-group {
       background: #d9e4f0;
       font-weight: 700; font-size: .75rem;
-      text-align: center; white-space: nowrap;
+      text-align: center;
     }
     .husky-section-table .td-name {
-      white-space: nowrap;
+      white-space: normal; word-break: break-word;
     }
     .husky-section-table .td-range,
     .husky-section-table .td-unit {
-      text-align: center; white-space: nowrap; color: #556;
+      text-align: center; color: #556;
     }
     .husky-section-table td input {
       border: none; outline: none; background: transparent;
@@ -345,7 +352,7 @@
     <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
   </svg>
   <h1>THC 生產OCR 辨識系統</h1>
-  <span class="version-badge">v1.1.2</span>
+  <span class="version-badge">v1.1.3</span>
 </header>
 
 <div class="container">
