@@ -84,7 +84,7 @@ def template():
     form_type = request.args.get("type", "cap")
     if form_type == "husky":
         from form_template_husky import create_blank_template as blank_husky
-        machine = request.args.get("machine", "Husky")
+        machine = request.args.get("machine", "EM04")
         path = blank_husky(machine)
         return send_file(
             path, as_attachment=True,
