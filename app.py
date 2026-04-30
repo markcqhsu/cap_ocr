@@ -71,6 +71,9 @@ def ocr():
         if form_type == "husky":
             from ocr_parser_husky import parse_form as parse_husky
             result = parse_husky(tmp_path)
+        elif form_type == "hpp5":
+            from ocr_parser_hpp5 import parse_form as parse_hpp5
+            result = parse_hpp5(tmp_path)
         else:
             result = parse_form(tmp_path)
     finally:
@@ -89,6 +92,14 @@ def template():
         return send_file(
             path, as_attachment=True,
             download_name=f"Husky_製程管制標準_{machine}_空白.xlsx",
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+    if form_type == "hpp5":
+        from form_template_hpp5 import create_blank_template as blank_hpp5
+        path = blank_hpp5()
+        return send_file(
+            path, as_attachment=True,
+            download_name="Hpp5_製程管制標準_空白.xlsx",
             mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
     process = request.args.get("process", "切割")
@@ -115,6 +126,15 @@ def export():
             path,
             as_attachment=True,
             download_name="Husky_製程管制標準.xlsx",
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+    if form_type == "hpp5":
+        from form_template_hpp5 import fill_template as fill_hpp5
+        path = fill_hpp5(data)
+        return send_file(
+            path,
+            as_attachment=True,
+            download_name="Hpp5_製程管制標準.xlsx",
             mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
 
