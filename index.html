@@ -135,23 +135,22 @@
     .husky-machine-row input[type=radio] { margin-right: 3px; accent-color: #1a3c6e; }
 
     .husky-tables {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      align-items: flex-start;
     }
-    @media (max-width: 800px) { .husky-tables { grid-template-columns: 1fr; } }
 
     .husky-section-table {
       border-collapse: collapse;
-      width: 100%;
       font-size: .8rem;
       table-layout: fixed;
     }
-    .husky-section-table thead th:nth-child(1) { width: 12%; } /* 項目 */
-    .husky-section-table thead th:nth-child(2) { width: 30%; } /* 名稱 */
-    .husky-section-table thead th:nth-child(3) { width: 22%; } /* 設定值 */
-    .husky-section-table thead th:nth-child(4) { width: 22%; } /* 範圍 */
-    .husky-section-table thead th:nth-child(5) { width: 14%; } /* 單位 */
+    .husky-section-table thead th:nth-child(1) { width: 52px;  } /* 項目 */
+    .husky-section-table thead th:nth-child(2) { width: 118px; } /* 名稱 */
+    .husky-section-table thead th:nth-child(3) { width: 62px;  } /* 設定值 */
+    .husky-section-table thead th:nth-child(4) { width: 52px;  } /* 範圍 */
+    .husky-section-table thead th:nth-child(5) { width: 52px;  } /* 單位 */
     .husky-section-table th {
       background: #1a3c6e; color: #fff;
       padding: 6px 5px; text-align: center;
@@ -352,7 +351,7 @@
     <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
   </svg>
   <h1>THC 生產OCR 辨識系統</h1>
-  <span class="version-badge">v1.1.3</span>
+  <span class="version-badge">v1.1.4</span>
 </header>
 
 <div class="container">
