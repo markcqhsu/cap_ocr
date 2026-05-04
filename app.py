@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from ocr_parser import parse_form
 from form_template import create_blank_template, fill_template
+from image_preprocess import enhance
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -66,6 +67,7 @@ def ocr():
     ext       = file.filename.rsplit(".", 1)[1].lower()
     tmp_path  = os.path.join(UPLOAD_DIR, f"{uuid.uuid4()}.{ext}")
     file.save(tmp_path)
+    enhance(tmp_path)
 
     try:
         if form_type == "husky":
