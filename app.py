@@ -35,6 +35,8 @@ def debug():
     if "image" not in request.files:
         return jsonify({"error": "No image"}), 400
     file = request.files["image"]
+    if not file.filename or not _allowed(file.filename):
+        return jsonify({"error": "不支援的圖片格式"}), 400
     ext  = file.filename.rsplit(".", 1)[-1].lower()
     tmp  = os.path.join(UPLOAD_DIR, f"{uuid.uuid4()}.{ext}")
     file.save(tmp)
