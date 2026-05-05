@@ -115,6 +115,8 @@ def template():
     if form_type == "husky":
         from form_template_husky import create_blank_template as blank_husky
         machine = request.args.get("machine", "EM04")
+        if machine not in {"EM04", "EM06", "EM07"}:
+            return jsonify({"error": "不支援的機型"}), 400
         path = blank_husky(machine)
         return _send_xlsx(path, f"Husky_製程管制標準_{machine}_空白.xlsx")
     if form_type == "hpp5":

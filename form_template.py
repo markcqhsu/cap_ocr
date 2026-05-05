@@ -21,6 +21,14 @@ COLUMNS = [
 
 DATA_ROWS = 20
 
+_FORMULA_CHARS = ("=", "+", "-", "@", "|", "\t", "\r")
+
+def _safe_cell(value) -> str:
+    s = str(value) if value is not None else ""
+    if s and s[0] in _FORMULA_CHARS:
+        return "'" + s
+    return s
+
 def _thin():
     s = Side(style="thin")
     return Border(left=s, right=s, top=s, bottom=s)
@@ -45,7 +53,7 @@ def create_blank_template(process="切割"):
     ws.row_dimensions[1].height = 28
 
     # Row 2: meta
-    ws["A2"] = process
+    ws["A2"] = _safe_cell(process)
     ws["A2"].font = Font(bold=True)
     ws["D2"] = "組別："
     ws["E2"] = ""
@@ -98,9 +106,9 @@ def fill_template(data):
         os.remove(blank_path)
     ws = wb.active
 
-    ws["E2"] = data.get("組別", "")
-    ws["H2"] = data.get("班別", "")
-    ws["K2"] = data.get("年份", "")
+    ws["E2"] = _safe_cell(data.get("組別", ""))
+    ws["H2"] = _safe_cell(data.get("班別", ""))
+    ws["K2"] = _safe_cell(data.get("年份", ""))
 
     col_keys = [
         "日期", "機台編號", "工單號碼", "品名蓋型",
@@ -113,7 +121,7 @@ def fill_template(data):
         if excel_row >= 4 + DATA_ROWS:
             break
         for j, key in enumerate(col_keys):
-            ws.cell(row=excel_row, column=j + 1).value = row.get(key, "")
+            ws.cell(row=excel_row, column=j + 1).value = _safe_cell(row.get(key, ""))
 
     footer_row = 4 + DATA_ROWS
     ws[f"A{footer_row}"] = f'廠長：{data.get("廠長", "")}'

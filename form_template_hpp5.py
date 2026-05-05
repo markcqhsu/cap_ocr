@@ -3,6 +3,14 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from ocr_parser_hpp5 import LEFT_TEMPLATE, RIGHT_TEMPLATE
 
+_FORMULA_CHARS = ("=", "+", "-", "@", "|", "\t", "\r")
+
+def _safe_cell(value) -> str:
+    s = str(value) if value is not None else ""
+    if s and s[0] in _FORMULA_CHARS:
+        return "'" + s
+    return s
+
 def _thin():
     s = Side(style="thin")
     return Border(left=s, right=s, top=s, bottom=s)
@@ -68,7 +76,7 @@ def _build_excel(data: dict, blank: bool = False) -> str:
     ws["A2"] = f'克重：{data.get("克重", "")}  瓶口：{data.get("瓶口", "")}'
     ws["E2"] = f'模號 {data.get("模號", "")}{穴數_str}'
     ws["I2"] = f'原料：{data.get("原料", "")}'
-    ws["M2"] = data.get("日期", "")
+    ws["M2"] = _safe_cell(data.get("日期", ""))
     for cell in ["A2", "E2", "I2", "M2"]:
         ws[cell].font = META_FONT
         ws[cell].alignment = _left()
@@ -130,10 +138,10 @@ def _write_left_row(ws, row, param):
     ws[f"A{row}"].fill      = GROUP_FILL
     ws[f"A{row}"].font      = GROUP_FONT
     ws[f"A{row}"].alignment = _center(wrap=True)
-    ws[f"B{row}"].value     = param["name"];  ws[f"B{row}"].alignment = _left()
-    ws[f"D{row}"].value     = param["value"]; ws[f"D{row}"].alignment = _center()
-    ws[f"F{row}"].value     = param["range"]; ws[f"F{row}"].alignment = _center()
-    ws[f"G{row}"].value     = param["unit"];  ws[f"G{row}"].alignment = _center()
+    ws[f"B{row}"].value     = _safe_cell(param["name"]);  ws[f"B{row}"].alignment = _left()
+    ws[f"D{row}"].value     = _safe_cell(param["value"]); ws[f"D{row}"].alignment = _center()
+    ws[f"F{row}"].value     = _safe_cell(param["range"]); ws[f"F{row}"].alignment = _center()
+    ws[f"G{row}"].value     = _safe_cell(param["unit"]);  ws[f"G{row}"].alignment = _center()
 
 
 def _write_right_row(ws, row, param):
@@ -146,10 +154,10 @@ def _write_right_row(ws, row, param):
     ws[f"H{row}"].fill      = GROUP_FILL
     ws[f"H{row}"].font      = GROUP_FONT
     ws[f"H{row}"].alignment = _center(wrap=True)
-    ws[f"I{row}"].value     = param["name"];  ws[f"I{row}"].alignment = _left()
-    ws[f"K{row}"].value     = param["value"]; ws[f"K{row}"].alignment = _center()
-    ws[f"M{row}"].value     = param["range"]; ws[f"M{row}"].alignment = _center()
-    ws[f"N{row}"].value     = param["unit"];  ws[f"N{row}"].alignment = _center()
+    ws[f"I{row}"].value     = _safe_cell(param["name"]);  ws[f"I{row}"].alignment = _left()
+    ws[f"K{row}"].value     = _safe_cell(param["value"]); ws[f"K{row}"].alignment = _center()
+    ws[f"M{row}"].value     = _safe_cell(param["range"]); ws[f"M{row}"].alignment = _center()
+    ws[f"N{row}"].value     = _safe_cell(param["unit"]);  ws[f"N{row}"].alignment = _center()
 
 
 def _merge_groups(ws, params, start_row, col):
