@@ -1,6 +1,6 @@
 import os
 import uuid
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, after_this_request
 from flask_cors import CORS
 from ocr_parser import parse_form
 from form_template import create_blank_template, fill_template
@@ -14,6 +14,7 @@ ALLOWED_ORIGINS = [
     "http://127.0.0.1:8080",
 ]
 CORS(app, resources={r"/*": {"origins": ALLOWED_ORIGINS}})
+app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB
 
 UPLOAD_DIR = "/tmp/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -22,6 +23,19 @@ ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "bmp", "webp"}
 
 def _allowed(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def _send_xlsx(path, download_name):
+    @after_this_request
+    def _cleanup(response):
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+        return response
+    return send_file(
+        path, as_attachment=True, download_name=download_name,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
 
 
 @app.route("/health")
@@ -102,35 +116,18 @@ def template():
         from form_template_husky import create_blank_template as blank_husky
         machine = request.args.get("machine", "EM04")
         path = blank_husky(machine)
-        return send_file(
-            path, as_attachment=True,
-            download_name=f"Husky_製程管制標準_{machine}_空白.xlsx",
-            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        )
+        return _send_xlsx(path, f"Husky_製程管制標準_{machine}_空白.xlsx")
     if form_type == "hpp5":
         from form_template_hpp5 import create_blank_template as blank_hpp5
         path = blank_hpp5()
-        return send_file(
-            path, as_attachment=True,
-            download_name="Hpp5_製程管制標準_空白.xlsx",
-            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        )
+        return _send_xlsx(path, "Hpp5_製程管制標準_空白.xlsx")
     if form_type == "netstal":
         from form_template_netstal import create_blank_template as blank_netstal
         path = blank_netstal()
-        return send_file(
-            path, as_attachment=True,
-            download_name="Netstal_製程管制標準_空白.xlsx",
-            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        )
+        return _send_xlsx(path, "Netstal_製程管制標準_空白.xlsx")
     process = request.args.get("process", "切割")
     path = create_blank_template(process)
-    return send_file(
-        path,
-        as_attachment=True,
-        download_name="塑蓋廠不良率紀錄表_blank.xlsx",
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    )
+    return _send_xlsx(path, "塑蓋廠不良率紀錄表_blank.xlsx")
 
 
 @app.route("/export", methods=["POST"])
@@ -143,39 +140,19 @@ def export():
     if form_type == "husky":
         from form_template_husky import fill_template as fill_husky
         path = fill_husky(data)
-        return send_file(
-            path,
-            as_attachment=True,
-            download_name="Husky_製程管制標準.xlsx",
-            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        )
+        return _send_xlsx(path, "Husky_製程管制標準.xlsx")
     if form_type == "hpp5":
         from form_template_hpp5 import fill_template as fill_hpp5
         path = fill_hpp5(data)
-        return send_file(
-            path,
-            as_attachment=True,
-            download_name="Hpp5_製程管制標準.xlsx",
-            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        )
+        return _send_xlsx(path, "Hpp5_製程管制標準.xlsx")
     if form_type == "netstal":
         from form_template_netstal import fill_template as fill_netstal
         path = fill_netstal(data)
-        return send_file(
-            path,
-            as_attachment=True,
-            download_name="Netstal_製程管制標準.xlsx",
-            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        )
+        return _send_xlsx(path, "Netstal_製程管制標準.xlsx")
 
     path = fill_template(data)
     process = data.get("製程", "不良率紀錄")
-    return send_file(
-        path,
-        as_attachment=True,
-        download_name=f"{process}_不良率紀錄表.xlsx",
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    )
+    return _send_xlsx(path, f"{process}_不良率紀錄表.xlsx")
 
 
 if __name__ == "__main__":

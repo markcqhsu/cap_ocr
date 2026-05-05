@@ -1,0 +1,8 @@
+.git
+.claude
+__pycache__
+*.pyc
+*.pyo
+.DS_Store
+ocr.py
+frontend/

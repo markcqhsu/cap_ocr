@@ -1,3 +1,5 @@
+import os
+import tempfile
 import openpyxl
 from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from openpyxl.utils import get_column_letter
@@ -82,15 +84,18 @@ def create_blank_template(process="切割"):
     ws[f"I{footer_row}"] = "填表人："
     ws.row_dimensions[footer_row].height = 20
 
-    path = "/tmp/塑蓋廠不良率紀錄表_blank.xlsx"
-    wb.save(path)
-    return path
+    tmp = tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False)
+    wb.save(tmp.name)
+    return tmp.name
 
 
 def fill_template(data):
     process = data.get("製程", "切割")
-    path = create_blank_template(process)
-    wb = openpyxl.load_workbook(path)
+    blank_path = create_blank_template(process)
+    try:
+        wb = openpyxl.load_workbook(blank_path)
+    finally:
+        os.remove(blank_path)
     ws = wb.active
 
     ws["E2"] = data.get("組別", "")
@@ -115,6 +120,6 @@ def fill_template(data):
     ws[f"E{footer_row}"] = f'副廠：{data.get("副廠", "")}'
     ws[f"I{footer_row}"] = f'填表人：{data.get("填表人", "")}'
 
-    out = "/tmp/不良率紀錄表_filled.xlsx"
-    wb.save(out)
-    return out
+    out = tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False)
+    wb.save(out.name)
+    return out.name
