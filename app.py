@@ -7,7 +7,13 @@ from form_template import create_blank_template, fill_template
 from image_preprocess import enhance
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+
+ALLOWED_ORIGINS = [
+    "https://markcqhsu.github.io",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+]
+CORS(app, resources={r"/*": {"origins": ALLOWED_ORIGINS}})
 
 UPLOAD_DIR = "/tmp/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
